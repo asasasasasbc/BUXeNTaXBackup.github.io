@@ -76,8 +76,10 @@
         mdPath = 'PostIndex.md';
       } else {
         mdPath = path;
-        // If no file extension, assume markdown
-        if (!/\.[^/]+$/.test(path)) {
+        // If no real file extension (alphanumeric only, e.g. .md .zip .html),
+        // assume markdown. This avoids false matches on filenames like
+        // "foo .dig image file formats_123" where ".dig ..." is not an extension.
+        if (!/\.[a-zA-Z0-9]+$/.test(path)) {
           mdPath = path + '.md';
         }
       }
