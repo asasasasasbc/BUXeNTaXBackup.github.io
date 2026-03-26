@@ -52,6 +52,9 @@
     // At root / → BASE = ''
     var BASE = window.location.pathname.replace(/\/(?:index\.html)?$/, '');
 
+    // Domain whose links should be rewritten to stay within this deployment
+    var XENTAX_ORIGIN = 'xentaxbackup.github.io';
+
     // Handle SPA redirect from 404.html
     var redirectPath = sessionStorage.getItem('redirect');
     if (redirectPath) {
@@ -94,6 +97,16 @@
             var name = mdPath.replace(/^markdown\//, '').replace(/\.md$/, '');
             document.title = name + ' - XeNTaX Backup';
           }
+          // Rewrite absolute XeNTaXBackup.github.io links to relative SPA navigation
+          var xentaxRe = new RegExp('^https?://' + XENTAX_ORIGIN + '(\/.*)?$', 'i');
+          document.querySelectorAll('#content a[href]').forEach(function(a) {
+            var href = a.getAttribute('href');
+            var match = href.match(xentaxRe);
+            if (match) {
+              var relPath = match[1] || '/';
+              a.setAttribute('href', BASE + relPath);
+            }
+          });
         })
         .catch(function() {
           document.getElementById('content').innerHTML =
@@ -101,6 +114,19 @@
           document.title = 'Not Found - XeNTaX Backup';
         });
     }
+
+    // SPA link handler: intercept same-origin clicks and navigate without full reload
+    document.getElementById('content').addEventListener('click', function(e) {
+      var a = e.target.closest('a[href]');
+      if (!a) return;
+      var href = a.getAttribute('href');
+      // Only handle absolute paths starting with BASE (already rewritten from xentax links)
+      if (href && href.charAt(0) === '/') {
+        e.preventDefault();
+        window.history.pushState(null, null, href);
+        loadPage();
+      }
+    });
 
     window.addEventListener('popstate', loadPage);
     loadPage();
