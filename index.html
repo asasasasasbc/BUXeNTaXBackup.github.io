@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>XeNTaX Backup</title>
+  <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 20px;
+      color: #24292e;
+      line-height: 1.6;
+    }
+    a { color: #0366d6; }
+    pre {
+      background: #f6f8fa;
+      padding: 16px;
+      border-radius: 6px;
+      overflow-x: auto;
+    }
+    code {
+      font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+      font-size: 85%;
+      background: #f6f8fa;
+      padding: 2px 4px;
+      border-radius: 3px;
+    }
+    pre code { background: none; padding: 0; }
+    #nav {
+      padding: 10px 0;
+      margin-bottom: 20px;
+      border-bottom: 1px solid #e1e4e8;
+    }
+    #content { min-height: 200px; }
+    #loading { color: #586069; }
+  </style>
+</head>
+<body>
+  <div id="nav">
+    <a href="/">&#8962; Home (Post Index)</a>
+  </div>
+  <div id="content"><span id="loading">Loading...</span></div>
+
+  <script>
+    // Handle SPA redirect from 404.html
+    var redirectPath = sessionStorage.getItem('redirect');
+    if (redirectPath) {
+      sessionStorage.removeItem('redirect');
+      window.history.replaceState(null, null, redirectPath);
+    }
+
+    function loadPage() {
+      var path = window.location.pathname;
+      // Remove leading slash and trailing slash
+      path = path.replace(/^\//, '').replace(/\/$/, '');
+
+      var mdPath;
+      if (!path || path === 'index.html') {
+        mdPath = 'PostIndex.md';
+      } else {
+        mdPath = path;
+        // If no file extension, assume markdown
+        if (!/\.[^/]+$/.test(path)) {
+          mdPath = path + '.md';
+        }
+      }
+
+      fetch(mdPath)
+        .then(function(r) {
+          if (!r.ok) throw new Error('Not found');
+          return r.text();
+        })
+        .then(function(text) {
+          document.getElementById('content').innerHTML = DOMPurify.sanitize(marked.parse(text));
+          // Set title from first heading or filename
+          var h1 = document.querySelector('#content h1, #content h2');
+          if (h1) {
+            document.title = h1.textContent + ' - XeNTaX Backup';
+          } else {
+            var name = mdPath.replace(/^markdown\//, '').replace(/\.md$/, '');
+            document.title = name + ' - XeNTaX Backup';
+          }
+        })
+        .catch(function() {
+          document.getElementById('content').innerHTML =
+            '<h1>Page Not Found</h1><p><a href="/">Back to index</a></p>';
+          document.title = 'Not Found - XeNTaX Backup';
+        });
+    }
+
+    window.addEventListener('popstate', loadPage);
+    loadPage();
+  </script>
+</body>
+</html>
