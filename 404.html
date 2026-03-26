@@ -6,8 +6,10 @@
   <script>
     // SPA redirect trick for GitHub Pages
     // Saves the requested path to sessionStorage, then redirects to index.html
+    // Derive base path from the first path segment (works for any project-page deployment)
+    var base = window.location.pathname.split('/').slice(0, 2).join('/');
     sessionStorage.setItem('redirect', window.location.pathname);
-    window.location.replace('/');
+    window.location.replace(base + '/');
   </script>
 </head>
 <body>

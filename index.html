@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <base href="./">
   <title>XeNTaX Backup</title>
   <script src="https://cdn.jsdelivr.net/npm/marked@9/marked.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/dompurify@3.2.4/dist/purify.min.js"></script>
@@ -41,11 +42,16 @@
 </head>
 <body>
   <div id="nav">
-    <a href="/">&#8962; Home (Post Index)</a>
+    <a href="./">&#8962; Home (Post Index)</a>
   </div>
   <div id="content"><span id="loading">Loading...</span></div>
 
   <script>
+    // Derive BASE from the actual URL of this page before any history manipulation.
+    // e.g. at /BUXeNTaXBackup.github.io/ → BASE = '/BUXeNTaXBackup.github.io'
+    // At root / → BASE = ''
+    var BASE = window.location.pathname.replace(/\/(?:index\.html)?$/, '');
+
     // Handle SPA redirect from 404.html
     var redirectPath = sessionStorage.getItem('redirect');
     if (redirectPath) {
@@ -55,6 +61,10 @@
 
     function loadPage() {
       var path = window.location.pathname;
+      // Strip the base path prefix
+      if (BASE && (path === BASE || path.indexOf(BASE + '/') === 0)) {
+        path = path.slice(BASE.length);
+      }
       // Remove leading slash and trailing slash
       path = path.replace(/^\//, '').replace(/\/$/, '');
 
@@ -87,7 +97,7 @@
         })
         .catch(function() {
           document.getElementById('content').innerHTML =
-            '<h1>Page Not Found</h1><p><a href="/">Back to index</a></p>';
+            '<h1>Page Not Found</h1><p><a href="./">Back to index</a></p>';
           document.title = 'Not Found - XeNTaX Backup';
         });
     }
